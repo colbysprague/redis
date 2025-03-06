@@ -14,8 +14,8 @@ const (
     BULK    = '$'
     ARRAY   = '*'
 
-    TYPE_BULK = "Bulk"
-    TYPE_ARRAY = "Array"
+    TYPE_BULK = "bulk"
+    TYPE_ARRAY = "array"
 )
 
 type Value struct {
@@ -97,6 +97,9 @@ func (r *Resp) Read() (Value, error) {
 // method to recursively read array
 func (r *Resp) readArray() (Value, error) {
 
+    v := Value{}
+    v.typ = TYPE_ARRAY
+    
     // skip the first byte
     r.reader.ReadByte()
 
@@ -108,18 +111,17 @@ func (r *Resp) readArray() (Value, error) {
 
 
     // iterate over the array and call read on each element and append it to the val
-    var val Value
 
     for _ = range length {
         readVal, err := r.Read()
         if err != nil {
-            return val, err
+            return v, err
         }
 
-        val.array = append(val.array, readVal) 
+        v.array = append(v.array, readVal) 
     }
 
-   return val, nil 
+   return v, nil 
 }
 
 // Skip the first byte because we have already read it in the Read method.
@@ -130,7 +132,7 @@ func (r *Resp) readArray() (Value, error) {
 // method to recursively read Bulk ?
 func (r *Resp) readBulk() (Value, error){
     v := Value{}
-    v.typ = "bulk"
+    v.typ = TYPE_BULK
     // skip the first byte since we've already read it
     r.reader.ReadByte()
 
